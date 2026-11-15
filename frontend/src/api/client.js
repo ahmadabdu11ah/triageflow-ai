@@ -3,7 +3,8 @@ import axios from 'axios';
 export const TOKEN_STORAGE_KEY = 'triageflow_access_token';
 export const USER_STORAGE_KEY = 'triageflow_user';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const rawApiUrl = import.meta.env.VITE_API_URL?.trim();
+export const API_BASE_URL = (rawApiUrl || 'http://localhost:8000').replace(/\/+$/, '');
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -61,7 +62,7 @@ export function getErrorMessage(error, fallback = 'An unexpected error occurred.
       .join(', ');
   }
   if (error.message === 'Network Error') {
-    return 'Cannot reach the TriageFlow API server (http://localhost:8000). Please ensure the FastAPI backend is running.';
+    return `Cannot reach the TriageFlow API server (${API_BASE_URL}). Please ensure the FastAPI backend is running.`;
   }
   return error.message || fallback;
 }

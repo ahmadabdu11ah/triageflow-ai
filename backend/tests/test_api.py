@@ -300,3 +300,40 @@ def test_ticket_stats_aggregation(
     assert stats["by_priority"]["high"] == 2
     assert stats["by_priority"]["critical"] == 1
     assert stats["by_priority"]["medium"] == 1
+
+
+# ---------------------------------------------------------------------------
+# 4. Deployment Configuration (ALLOWED_ORIGINS & DATABASE_URL Normalization)
+# ---------------------------------------------------------------------------
+def test_allowed_origins_and_database_url_normalization(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from app.config import Settings
+
+    monkeypatch.setenv(
+        "ALLOWED_ORIGINS",
+        "https://triageflow.vercel.app/, http://localhost:5173",
+    )
+    monkeypatch.setenv("DATABASE_URL", "postgres://user:pass@host:5432/dbname")
+    monkeypatch.setenv("SECRET_KEY", "test-secret")
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+    monkeypatch.setenv("GEMINI_MODEL", "gemini-3.5-flash-lite")
+
+    s = Settings(_env_file=None)
+    assert s.allowed_origins == [
+        "https://triageflow.vercel.app",
+        "http://localhost:5173",
+    ]
+    assert s.database_url == "postgresql+psycopg2://user:pass@host:5432/dbname"
+
+    # Also supports JSON list format in ALLOWED_ORIGINS
+    monkeypatch.setenv(
+        "ALLOWED_ORIGINS",
+        '["https://prod.vercel.app/", "https://staging.vercel.app"]',
+    )
+    s_json = Settings(_env_file=None)
+    assert s_json.allowed_origins == [
+        "https://prod.vercel.app",
+        "https://staging.vercel.app",
+    ]
+
