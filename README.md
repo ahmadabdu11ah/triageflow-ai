@@ -1,6 +1,6 @@
 # TriageFlow AI
 
-A full-stack **AI-Assisted Engineering Issue Triage Application** built with **FastAPI**, **PostgreSQL**, **Google Gemini (`google-genai`)**, and **React (Vite + Tailwind CSS v4)**. TriageFlow AI streamlines engineering operations by capturing incoming bug reports and feature requests, automatically classifying category and priority with structured LLM outputs, generating executive summaries and responder replies, and tracking full ticket lifecycle history.
+A full-stack **AI-Assisted Engineering Issue Triage Application** built with **FastAPI**, **PostgreSQL**, **Google Gemini**, and **React (Vite + Tailwind CSS v4)**. TriageFlow AI streamlines engineering operations by capturing incoming bug reports and feature requests, automatically classifying category and priority with structured LLM outputs, generating executive summaries and responder replies, and tracking full ticket lifecycle history.
 
 ---
 
