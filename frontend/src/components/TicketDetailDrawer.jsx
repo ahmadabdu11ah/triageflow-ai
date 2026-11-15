@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   X,
   Sparkles,
@@ -16,6 +16,8 @@ import {
   FilePlus2,
   Edit3,
   AlertTriangle,
+  ChevronDown,
+  Tag,
 } from 'lucide-react';
 import {
   getTicket,
@@ -79,10 +81,35 @@ export default function TicketDetailDrawer({
   const [ticket, setTicket] = useState(initialTicket || null);
   const [loading, setLoading] = useState(false);
   const [updatingField, setUpdatingField] = useState('');
+  const [openDropdown, setOpenDropdown] = useState(null); // 'status' | 'priority' | 'category' | null
   const [triaging, setTriaging] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [copiedReply, setCopiedReply] = useState(false);
   const [error, setError] = useState('');
+  const workflowControlsRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        workflowControlsRef.current &&
+        !workflowControlsRef.current.contains(event.target)
+      ) {
+        setOpenDropdown(null);
+      }
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setOpenDropdown(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   useEffect(() => {
     if (!ticketId) {
@@ -302,59 +329,227 @@ export default function TicketDetailDrawer({
               </div>
 
               {/* Quick Workflow Controls (PATCH /api/tickets/{id}) */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80">
-                <div>
+              <div
+                ref={workflowControlsRef}
+                className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80"
+              >
+                {/* Status Custom Dropdown */}
+                <div className="relative">
                   <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
                     Status
                   </label>
-                  <select
-                    value={ticket.status}
+                  <button
+                    type="button"
                     disabled={updatingField === 'status'}
-                    onChange={(e) => handleFieldChange('status', e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs font-medium text-slate-100 focus:outline-none focus:border-indigo-500 cursor-pointer"
+                    aria-haspopup="listbox"
+                    aria-expanded={openDropdown === 'status'}
+                    onClick={() =>
+                      setOpenDropdown((prev) => (prev === 'status' ? null : 'status'))
+                    }
+                    className={`w-full inline-flex items-center justify-between gap-2.5 px-3.5 py-2.5 rounded-xl border text-xs font-medium transition cursor-pointer disabled:opacity-60 ${
+                      openDropdown === 'status'
+                        ? 'bg-slate-900 border-indigo-500/50 text-white shadow-sm shadow-indigo-500/10'
+                        : 'bg-slate-900/90 hover:bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-100'
+                    }`}
                   >
-                    {TICKET_STATUSES.map((s) => (
-                      <option key={s.value} value={s.value}>
-                        {s.label}
-                      </option>
-                    ))}
-                  </select>
+                    <span className="inline-flex items-center gap-2 truncate">
+                      <span className={`w-2 h-2 rounded-full shrink-0 ${statusMeta.dotClass}`} />
+                      <span className="truncate">{statusMeta.label}</span>
+                    </span>
+                    {updatingField === 'status' ? (
+                      <Loader2 className="w-3.5 h-3.5 text-indigo-400 animate-spin shrink-0" />
+                    ) : (
+                      <ChevronDown
+                        className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-150 ${
+                          openDropdown === 'status' ? 'rotate-180 text-indigo-400' : ''
+                        }`}
+                      />
+                    )}
+                  </button>
+
+                  {openDropdown === 'status' && (
+                    <div
+                      role="listbox"
+                      aria-label="Select status"
+                      className="absolute left-0 right-0 mt-2 rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-slate-800 shadow-2xl shadow-black/60 p-1.5 z-40 space-y-0.5"
+                    >
+                      {TICKET_STATUSES.map((s) => {
+                        const isSelected = ticket.status === s.value;
+                        return (
+                          <button
+                            key={s.value}
+                            type="button"
+                            role="option"
+                            aria-selected={isSelected}
+                            onClick={() => {
+                              setOpenDropdown(null);
+                              handleFieldChange('status', s.value);
+                            }}
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition cursor-pointer ${
+                              isSelected
+                                ? 'bg-indigo-500/15 text-white'
+                                : 'text-slate-300 hover:bg-slate-800/70 hover:text-white'
+                            }`}
+                          >
+                            <span className="inline-flex items-center gap-2">
+                              <span
+                                className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium border ${s.badgeClass}`}
+                              >
+                                <span className={`w-1.5 h-1.5 rounded-full ${s.dotClass}`} />
+                                {s.label}
+                              </span>
+                            </span>
+                            {isSelected && <Check className="w-3.5 h-3.5 text-indigo-400 shrink-0" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
-                <div>
+                {/* Priority Custom Dropdown */}
+                <div className="relative">
                   <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
                     Priority
                   </label>
-                  <select
-                    value={ticket.priority}
+                  <button
+                    type="button"
                     disabled={updatingField === 'priority'}
-                    onChange={(e) => handleFieldChange('priority', e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs font-medium text-slate-100 focus:outline-none focus:border-indigo-500 cursor-pointer"
+                    aria-haspopup="listbox"
+                    aria-expanded={openDropdown === 'priority'}
+                    onClick={() =>
+                      setOpenDropdown((prev) => (prev === 'priority' ? null : 'priority'))
+                    }
+                    className={`w-full inline-flex items-center justify-between gap-2.5 px-3.5 py-2.5 rounded-xl border text-xs font-medium transition cursor-pointer disabled:opacity-60 ${
+                      openDropdown === 'priority'
+                        ? 'bg-slate-900 border-indigo-500/50 text-white shadow-sm shadow-indigo-500/10'
+                        : 'bg-slate-900/90 hover:bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-100'
+                    }`}
                   >
-                    {TICKET_PRIORITIES.map((p) => (
-                      <option key={p.value} value={p.value}>
-                        {p.label}
-                      </option>
-                    ))}
-                  </select>
+                    <span className="inline-flex items-center gap-2 truncate">
+                      <span className={`w-2 h-2 rounded-full shrink-0 ${priorityMeta.dotClass}`} />
+                      <span className="truncate">{priorityMeta.label}</span>
+                    </span>
+                    {updatingField === 'priority' ? (
+                      <Loader2 className="w-3.5 h-3.5 text-indigo-400 animate-spin shrink-0" />
+                    ) : (
+                      <ChevronDown
+                        className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-150 ${
+                          openDropdown === 'priority' ? 'rotate-180 text-indigo-400' : ''
+                        }`}
+                      />
+                    )}
+                  </button>
+
+                  {openDropdown === 'priority' && (
+                    <div
+                      role="listbox"
+                      aria-label="Select priority"
+                      className="absolute left-0 right-0 mt-2 rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-slate-800 shadow-2xl shadow-black/60 p-1.5 z-40 space-y-0.5"
+                    >
+                      {TICKET_PRIORITIES.map((p) => {
+                        const isSelected = ticket.priority === p.value;
+                        return (
+                          <button
+                            key={p.value}
+                            type="button"
+                            role="option"
+                            aria-selected={isSelected}
+                            onClick={() => {
+                              setOpenDropdown(null);
+                              handleFieldChange('priority', p.value);
+                            }}
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition cursor-pointer ${
+                              isSelected
+                                ? 'bg-indigo-500/15 text-white'
+                                : 'text-slate-300 hover:bg-slate-800/70 hover:text-white'
+                            }`}
+                          >
+                            <span className="inline-flex items-center gap-2">
+                              <span
+                                className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium border ${p.badgeClass}`}
+                              >
+                                <span className={`w-1.5 h-1.5 rounded-full ${p.dotClass}`} />
+                                {p.label}
+                              </span>
+                            </span>
+                            {isSelected && <Check className="w-3.5 h-3.5 text-indigo-400 shrink-0" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
-                <div>
+                {/* Category Custom Dropdown */}
+                <div className="relative">
                   <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
                     Category
                   </label>
-                  <select
-                    value={ticket.category}
+                  <button
+                    type="button"
                     disabled={updatingField === 'category'}
-                    onChange={(e) => handleFieldChange('category', e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs font-medium text-slate-100 focus:outline-none focus:border-indigo-500 cursor-pointer"
+                    aria-haspopup="listbox"
+                    aria-expanded={openDropdown === 'category'}
+                    onClick={() =>
+                      setOpenDropdown((prev) => (prev === 'category' ? null : 'category'))
+                    }
+                    className={`w-full inline-flex items-center justify-between gap-2.5 px-3.5 py-2.5 rounded-xl border text-xs font-medium transition cursor-pointer disabled:opacity-60 ${
+                      openDropdown === 'category'
+                        ? 'bg-slate-900 border-indigo-500/50 text-white shadow-sm shadow-indigo-500/10'
+                        : 'bg-slate-900/90 hover:bg-slate-900 border-slate-800 hover:border-slate-700 text-slate-100'
+                    }`}
                   >
-                    {TICKET_CATEGORIES.map((c) => (
-                      <option key={c.value} value={c.value}>
-                        {c.label}
-                      </option>
-                    ))}
-                  </select>
+                    <span className="inline-flex items-center gap-2 truncate">
+                      <Tag className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                      <span className="truncate">{categoryMeta.label}</span>
+                    </span>
+                    {updatingField === 'category' ? (
+                      <Loader2 className="w-3.5 h-3.5 text-indigo-400 animate-spin shrink-0" />
+                    ) : (
+                      <ChevronDown
+                        className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-150 ${
+                          openDropdown === 'category' ? 'rotate-180 text-indigo-400' : ''
+                        }`}
+                      />
+                    )}
+                  </button>
+
+                  {openDropdown === 'category' && (
+                    <div
+                      role="listbox"
+                      aria-label="Select category"
+                      className="absolute right-0 left-0 sm:left-auto sm:w-52 mt-2 rounded-2xl bg-slate-900/95 backdrop-blur-xl border border-slate-800 shadow-2xl shadow-black/60 p-1.5 z-40 space-y-0.5"
+                    >
+                      {TICKET_CATEGORIES.map((c) => {
+                        const isSelected = ticket.category === c.value;
+                        return (
+                          <button
+                            key={c.value}
+                            type="button"
+                            role="option"
+                            aria-selected={isSelected}
+                            onClick={() => {
+                              setOpenDropdown(null);
+                              handleFieldChange('category', c.value);
+                            }}
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition cursor-pointer ${
+                              isSelected
+                                ? 'bg-indigo-500/15 text-white'
+                                : 'text-slate-300 hover:bg-slate-800/70 hover:text-white'
+                            }`}
+                          >
+                            <span
+                              className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border ${c.badgeClass}`}
+                            >
+                              {c.label}
+                            </span>
+                            {isSelected && <Check className="w-3.5 h-3.5 text-indigo-400 shrink-0" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -434,11 +629,10 @@ export default function TicketDetailDrawer({
                       type="button"
                       onClick={handleCopySuggestedReply}
                       disabled={!ticket.ai_suggested_reply}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
-                        copiedReply
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${copiedReply
                           ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                           : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border-slate-700'
-                      }`}
+                        }`}
                     >
                       {copiedReply ? (
                         <>

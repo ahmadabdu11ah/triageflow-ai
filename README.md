@@ -234,9 +234,3 @@ cd backend
 | `PATCH` | `/api/tickets/{id}` | Bearer JWT | Update ticket fields (`status`, `priority`, `category`, `title`, `description`, `assigned_to_id`) |
 | `DELETE` | `/api/tickets/{id}` | Bearer JWT | Permanently delete a ticket (`204 No Content`) |
 | `POST` | `/api/tickets/{id}/triage` | Bearer JWT | Run or re-run Gemini AI triage classification on an existing ticket |
-
----
-
-## License
-
-This project is licensed under the MIT License.

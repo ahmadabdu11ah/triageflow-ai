@@ -8,10 +8,10 @@ export const DEMO_CREDENTIALS = {
 
 function persistSession(tokenResponse) {
   if (tokenResponse?.access_token) {
-    localStorage.setItem(TOKEN_STORAGE_KEY, tokenResponse.access_token);
+    sessionStorage.setItem(TOKEN_STORAGE_KEY, tokenResponse.access_token);
   }
   if (tokenResponse?.user) {
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(tokenResponse.user));
+    sessionStorage.setItem(USER_STORAGE_KEY, JSON.stringify(tokenResponse.user));
   }
   return tokenResponse;
 }
@@ -49,7 +49,7 @@ export async function loginUser({ email, password }) {
  */
 export async function getCurrentUser() {
   const { data } = await apiClient.get('/api/auth/me');
-  localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data));
+  sessionStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data));
   return data;
 }
 
@@ -86,6 +86,6 @@ export async function loginDemoUser({ onStatusChange } = {}) {
 }
 
 export function clearSession() {
-  localStorage.removeItem(TOKEN_STORAGE_KEY);
-  localStorage.removeItem(USER_STORAGE_KEY);
+  sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+  sessionStorage.removeItem(USER_STORAGE_KEY);
 }

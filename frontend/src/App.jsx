@@ -27,14 +27,14 @@ const INITIAL_FILTERS = {
 export default function App() {
   const [user, setUser] = useState(() => {
     try {
-      const saved = localStorage.getItem(USER_STORAGE_KEY);
+      const saved = sessionStorage.getItem(USER_STORAGE_KEY);
       return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
     }
   });
   const [authChecking, setAuthChecking] = useState(() =>
-    Boolean(localStorage.getItem(TOKEN_STORAGE_KEY))
+    Boolean(sessionStorage.getItem(TOKEN_STORAGE_KEY))
   );
 
   // Dashboard state
@@ -61,7 +61,7 @@ export default function App() {
 
   // Verify token on initial load
   useEffect(() => {
-    const token = localStorage.getItem(TOKEN_STORAGE_KEY);
+    const token = sessionStorage.getItem(TOKEN_STORAGE_KEY);
     if (!token) {
       setAuthChecking(false);
       return;

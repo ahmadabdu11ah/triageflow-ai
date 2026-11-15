@@ -13,10 +13,10 @@ const apiClient = axios.create({
   timeout: 30000,
 });
 
-// Request interceptor: attach JWT Bearer token from localStorage
+// Request interceptor: attach JWT Bearer token from sessionStorage
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem(TOKEN_STORAGE_KEY);
+    const token = sessionStorage.getItem(TOKEN_STORAGE_KEY);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -35,8 +35,8 @@ apiClient.interceptors.response.use(
       requestUrl.includes('/api/auth/login') || requestUrl.includes('/api/auth/register');
 
     if (status === 401 && !isAuthAttempt) {
-      localStorage.removeItem(TOKEN_STORAGE_KEY);
-      localStorage.removeItem(USER_STORAGE_KEY);
+      sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+      sessionStorage.removeItem(USER_STORAGE_KEY);
       window.dispatchEvent(new CustomEvent('triageflow:unauthorized'));
     }
     return Promise.reject(error);
