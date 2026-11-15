@@ -1,6 +1,6 @@
 # TriageFlow AI
 
-A full-stack **AI-Assisted Engineering Issue Triage Application** built with **FastAPI**, **PostgreSQL**, **Google Gemini (`google-genai`)**, and **React (Vite + Tailwind CSS v4)**. TriageFlow AI streamlines engineering operations by capturing incoming bug reports and feature requests, automatically classifying category and priority with structured LLM outputs, generating executive summaries and responder replies, and tracking full ticket lifecycle history.
+A full-stack **AI-Assisted Engineering Issue Triage Application** built with **FastAPI**, **PostgreSQL**, **Google Gemini**, and **React (Vite + Tailwind CSS v4)**. TriageFlow AI streamlines engineering operations by capturing incoming bug reports and feature requests, automatically classifying category and priority with structured LLM outputs, generating executive summaries and responder replies, and tracking full ticket lifecycle history.
 
 ---
 
@@ -234,9 +234,3 @@ cd backend
 | `PATCH` | `/api/tickets/{id}` | Bearer JWT | Update ticket fields (`status`, `priority`, `category`, `title`, `description`, `assigned_to_id`) |
 | `DELETE` | `/api/tickets/{id}` | Bearer JWT | Permanently delete a ticket (`204 No Content`) |
 | `POST` | `/api/tickets/{id}/triage` | Bearer JWT | Run or re-run Gemini AI triage classification on an existing ticket |
-
----
-
-## License
-
-This project is licensed under the MIT License.
