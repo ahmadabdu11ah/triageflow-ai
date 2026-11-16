@@ -198,8 +198,8 @@ export default function AuthPage({ onAuthenticated }) {
                 type="button"
                 onClick={() => switchMode('login')}
                 className={`flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-lg transition cursor-pointer ${mode === 'login'
-                    ? 'bg-slate-800 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-slate-800 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
                   }`}
               >
                 <LogIn className="w-4 h-4" />
@@ -209,8 +209,8 @@ export default function AuthPage({ onAuthenticated }) {
                 type="button"
                 onClick={() => switchMode('register')}
                 className={`flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-lg transition cursor-pointer ${mode === 'register'
-                    ? 'bg-slate-800 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-slate-800 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
                   }`}
               >
                 <UserPlus className="w-4 h-4" />
@@ -308,6 +308,17 @@ export default function AuthPage({ onAuthenticated }) {
                   </>
                 )}
               </button>
+
+              <p
+                role="status"
+                aria-live="polite"
+                className={`text-center text-xs transition-colors ${loading || demoLoading
+                    ? 'text-indigo-300 animate-pulse'
+                    : 'text-slate-500'
+                  }`}
+              >
+                Waking up free-tier API server first request may take ~20–30 seconds
+              </p>
             </form>
           </div>
         </div>
