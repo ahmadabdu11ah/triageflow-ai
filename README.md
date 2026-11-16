@@ -1,6 +1,37 @@
 # TriageFlow AI
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://triageflow-ai.vercel.app/)
+[![Live API Docs](https://img.shields.io/badge/API_Docs-Swagger_UI-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://triageflow-ai-hgns.onrender.com/docs)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![React 18](https://img.shields.io/badge/React_18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![Vite 6](https://img.shields.io/badge/Vite_6-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vite.dev/)
+[![Tailwind CSS v4](https://img.shields.io/badge/Tailwind_CSS_v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Google Gemini](https://img.shields.io/badge/Google_Gemini-8E75B2?style=for-the-badge&logo=googlegemini&logoColor=white)](https://ai.google.dev/)
+
 A full-stack **AI-Assisted Engineering Issue Triage Application** built with **FastAPI**, **PostgreSQL**, **Google Gemini**, and **React (Vite + Tailwind CSS v4)**. TriageFlow AI streamlines engineering operations by capturing incoming bug reports and feature requests, automatically classifying category and priority with structured LLM outputs, generating executive summaries and responder replies, and tracking full ticket lifecycle history.
+
+---
+
+## Live Deployment & Demo Access
+
+| Resource | URL |
+| :--- | :--- |
+| **Live Web App (Vercel)** | [**https://triageflow-ai.vercel.app/**](https://triageflow-ai.vercel.app/) |
+| **Live Interactive API Docs (Render)** | [**https://triageflow-ai-hgns.onrender.com/docs**](https://triageflow-ai-hgns.onrender.com/docs) |
+| **Health Check Endpoint** | [**https://triageflow-ai-hgns.onrender.com/api/health**](https://triageflow-ai-hgns.onrender.com/api/health) |
+
+### Instant Demo Login Instructions
+
+You can explore the live application immediately without manual registration:
+
+1. Open the [**Live Demo**](https://triageflow-ai.vercel.app/).
+2. Click the **1-Click Demo User Login** button on the sign-in screen (it automatically provisions and authenticates the sandbox account if needed), **or** sign in manually with:
+   - **Email:** `demo@triageflow.ai`
+   - **Password:** `DemoPassword123!`
+3. Create a new ticket (or pick one of the built-in **1-Click Sample Scenario Templates** in the *New Ticket* modal) to watch Google Gemini classify priority/category, compute a confidence score, and draft a responder reply in real time.
+
+> **Note (Render Free Tier Cold Start):** The backend API runs on Render's free tier, which spins down after 15 minutes of inactivity. Your first login or API request after an idle period may take **30–50 seconds** while the container wakes up; subsequent requests respond immediately.
 
 ---
 
@@ -8,7 +39,7 @@ A full-stack **AI-Assisted Engineering Issue Triage Application** built with **F
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                        React 18 + Vite + Tailwind v4                    │
+│                React 18 + Vite 6 + Tailwind v4 (Vercel)                 │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌─────────────┐  │
 │  │   AuthPage   │  │  StatsCards  │  │  FilterBar & │  │TicketDetail │  │
 │  │ (JWT + Demo) │  │ (Live KPIs)  │  │  TicketList  │  │   Drawer    │  │
@@ -18,10 +49,10 @@ A full-stack **AI-Assisted Engineering Issue Triage Application** built with **F
 │                   Axios API Client (`src/api/client.js`)                │
 │             (Bearer JWT Request Interceptor & 401 Handler)              │
 └────────────────────────────────────┬────────────────────────────────────┘
-                                     │ HTTP / JSON (`/api/*`)
+                                     │ HTTPS / JSON (`VITE_API_URL`)
                                      ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                          FastAPI Application                            │
+│                     FastAPI Application (Render)                        │
 │  ┌─────────────────────────────────┐ ┌────────────────────────────────┐ │
 │  │   Auth Router (`/api/auth/*`)   │ │Tickets Router (`/api/tickets`) │ │
 │  └────────────────┬────────────────┘ └───────────────┬────────────────┘ │
@@ -43,28 +74,22 @@ A full-stack **AI-Assisted Engineering Issue Triage Application** built with **F
                    └─────────────────────┘
 ```
 
-### Key Architectural Layers
+### Key Architectural Highlights
 
-1. **Backend API (`backend/app/`)**
-   - **Configuration (`config.py`)**: Centralized environment configuration powered by `pydantic-settings` (`Settings`), loading database credentials, JWT secrets, CORS origins, and Gemini settings from `backend/.env` with zero hardcoded secrets.
-   - **Data Layer (`database.py`, `models.py`, `schemas.py`)**:
-     - SQLAlchemy 2.0 declarative ORM models (`Mapped` / `mapped_column`) with connection pooling (`pool_pre_ping=True`).
-     - Three core relational tables:
-       - `users`: Accounts with `email`, `full_name`, `hashed_password` (bcrypt), and `role` (`admin`, `agent`, `reporter`).
-       - `tickets`: Engineering issues with `status` (`open`, `triaged`, `in_progress`, `resolved`, `closed`), `priority` (`low`, `medium`, `high`, `critical`), `category` (`bug`, `feature`, `security`, `performance`, `support`, `other`), and AI metadata (`ai_summary`, `ai_suggested_reply`, `ai_confidence`).
-       - `ticket_activities`: Immutable audit log recording every ticket creation, field transition, and AI triage event.
-     - Strict Pydantic v2 request/response validation (`UserCreate`, `TicketCreate`, `TicketUpdate`, `TicketDetail`, `TicketStats`, `AITriageResult`).
-   - **Service Layer (`services/`)**:
-     - `auth_service.py`: Bcrypt password hashing with timing-attack equalization and PyJWT (`HS256`) access token issuance/verification.
-     - `ai_service.py`: Calls Google Gemini (`google-genai` SDK) using `response_schema=AITriageResult` and `response_mime_type="application/json"` to guarantee schema-valid triage classifications, summaries, suggested replies, and confidence scores.
-     - `ticket_service.py`: Encapsulates CRUD operations, wildcard-safe `ILIKE` search, SQL `GROUP BY` KPI aggregation (`/api/tickets/stats`), activity timeline logging, and best-effort auto-triage on ticket creation (gracefully falling back to `open` status if the AI service is unreachable).
-   - **API Routers (`routers/auth.py`, `routers/tickets.py`)**: Thin HTTP controllers handling dependency injection (`Depends(get_db)`, `Depends(get_current_user)`) and status codes.
+1. **Structured LLM Triage Engine (`backend/app/services/ai_service.py`)**
+   - Uses the official `google-genai` SDK with `response_schema=AITriageResult` and `response_mime_type="application/json"` to guarantee schema-valid classifications (`category`, `priority`, `summary`, `suggested_reply`, and `confidence` score between `0.0` and `1.0`).
+   - **Graceful Degradation**: If the AI provider is temporarily unreachable or rate-limited during ticket creation, `ticket_service.py` still persists the ticket in `open` status so user submissions are never lost, allowing engineers to trigger **Re-run AI Triage** on demand.
 
-2. **Frontend SPA (`frontend/src/`)**
-   - **API Client (`src/api/`)**: Centralized Axios client (`client.js`) that attaches `Authorization: Bearer <token>` headers from `localStorage` and broadcasts a `triageflow:unauthorized` event on `401` responses to reset expired sessions cleanly.
-   - **Authentication (`components/AuthPage.jsx`)**: Supports account registration, email/password sign-in, and a **1-Click Demo User Login** (`demo@triageflow.ai`) that automatically provisions the demo account on first use.
-   - **Triage Dashboard (`App.jsx`, `StatsCards.jsx`, `FilterBar.jsx`, `TicketList.jsx`)**: Real-time KPI summary cards, interactive status/priority filter pills, custom category selector with live counts, and instant keyword search.
-   - **Creation & Inspection (`NewTicketModal.jsx`, `TicketDetailDrawer.jsx`)**: One-click sample scenario templates for testing AI triage, slide-over detail drawer with inline `status`/`priority`/`category` updates, AI confidence meter, one-click copy for suggested responder replies, on-demand **Re-run AI Triage**, and chronological activity audit log.
+2. **Clean Layered Backend (`backend/app/`)**
+   - **Configuration (`config.py`)**: Centralized `pydantic-settings` loader supporting `ALLOWED_ORIGINS` (comma-separated or JSON array) and automatic normalization of Render `postgres://` / `postgresql://` URLs to `postgresql+psycopg2://`.
+   - **Data Layer (`database.py`, `models.py`, `schemas.py`)**: SQLAlchemy 2.0 declarative ORM models (`Mapped` / `mapped_column`) with connection health checks (`pool_pre_ping=True`) across three relational tables: `users`, `tickets`, and immutable `ticket_activities` audit logs.
+   - **Security (`auth_service.py`, `dependencies.py`)**: Bcrypt password hashing with timing-attack equalization (`_DUMMY_BCRYPT_HASH`) and stateless `HS256` JWT Bearer authentication.
+   - **SQL KPI Aggregation (`ticket_service.py`)**: Computes real-time counts by status, priority, and category via SQL `GROUP BY` queries and wildcard-safe `ILIKE` search.
+
+3. **Responsive React 18 + Tailwind v4 Frontend (`frontend/src/`)**
+   - **Centralized API Layer (`src/api/client.js`)**: Configured via `import.meta.env.VITE_API_URL`, automatically attaching JWT Bearer tokens from `sessionStorage` and dispatching a `triageflow:unauthorized` event on `401` responses.
+   - **Interactive Triage Workspace (`App.jsx`, `StatsCards.jsx`, `FilterBar.jsx`, `TicketList.jsx`, `TicketDetailDrawer.jsx`)**: Live KPI cards, instant filter pills, slide-over detail drawer with inline status/priority/category editing, AI confidence meter, one-click reply copy, and full activity timeline.
+   - **Cloud-Ready SPA Routing (`frontend/vercel.json`)**: Configured with catch-all rewrites to `/index.html` for seamless page refreshes on Vercel.
 
 ---
 
@@ -72,11 +97,12 @@ A full-stack **AI-Assisted Engineering Issue Triage Application** built with **F
 
 | Layer | Technology |
 | :--- | :--- |
-| **Backend API** | Python 3.10+, FastAPI, Pydantic v2, `pydantic-settings`, SQLAlchemy 2.0 |
+| **Backend API** | Python 3.10+, FastAPI, Uvicorn / Gunicorn, Pydantic v2, `pydantic-settings`, SQLAlchemy 2.0 |
 | **Authentication** | PyJWT (`HS256`), `bcrypt` |
 | **AI Engine** | Google Gemini SDK (`google-genai`), Structured Outputs (`AITriageResult`) |
 | **Database** | PostgreSQL 14+ (`psycopg2-binary`), SQLite in-memory (for offline unit tests) |
 | **Frontend UI** | React 18, Vite 6, Tailwind CSS v4, Axios, Lucide React |
+| **Cloud Hosting** | Vercel (Frontend SPA), Render (FastAPI Web Service & Managed PostgreSQL) |
 | **Testing** | Pytest, FastAPI `TestClient` |
 
 ---
@@ -118,10 +144,13 @@ triageflow-ai/
 │   │   ├── App.jsx                  # Main dashboard container & state orchestration
 │   │   ├── index.css                # Tailwind CSS v4 entry stylesheet
 │   │   └── main.jsx                 # React DOM root mount
+│   ├── .env.example                 # Template for frontend VITE_API_URL variable
 │   ├── index.html                   # HTML shell
 │   ├── package.json                 # Node dependencies and Vite scripts
+│   ├── vercel.json                  # Vercel SPA rewrite configuration
 │   └── vite.config.js               # Vite dev server & /api proxy configuration
 ├── .gitignore                       # Git ignore rules (.env, venv/, node_modules/, etc.)
+├── render.yaml                      # Render Blueprint for backend & PostgreSQL
 └── README.md                        # Project documentation
 ```
 
@@ -174,7 +203,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=60
 GEMINI_API_KEY="your-gemini-api-key-here"
 GEMINI_MODEL="gemini-3.5-flash-lite"
 
-CORS_ORIGINS=["http://localhost:5173"]
+ALLOWED_ORIGINS="http://localhost:5173,https://triageflow-ai.vercel.app"
 ```
 
 Start the FastAPI development server (database tables are created automatically on startup via `Base.metadata.create_all`):
@@ -183,7 +212,7 @@ Start the FastAPI development server (database tables are created automatically 
 uvicorn app.main:app --reload --port 8000
 ```
 
-Interactive API documentation is available once the server is running:
+Interactive local API documentation:
 - **Swagger UI**: `http://localhost:8000/docs`
 - **ReDoc**: `http://localhost:8000/redoc`
 - **Health Check**: `http://localhost:8000/api/health`
@@ -200,11 +229,14 @@ cd frontend
 # 1. Install Node.js dependencies
 npm install
 
-# 2. Start the Vite development server
+# 2. (Optional) Configure custom API URL
+Copy-Item .env.example .env
+
+# 3. Start the Vite development server
 npm run dev
 ```
 
-Open `http://localhost:5173` in your browser. Click **1-Click Demo User Login** on the sign-in screen to automatically provision and sign in with the sandbox account (`demo@triageflow.ai`).
+Open `http://localhost:5173` in your browser and click **1-Click Demo User Login** to sign in with the sandbox account (`demo@triageflow.ai`).
 
 ---
 
